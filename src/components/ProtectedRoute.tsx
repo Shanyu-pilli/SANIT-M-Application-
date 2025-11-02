@@ -59,6 +59,12 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     }
   };
 
+  // Development bypass: render children without requiring Supabase session.
+  // This is safe because all hooks are called above unconditionally.
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center">

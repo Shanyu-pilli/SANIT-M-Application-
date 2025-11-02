@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Calendar, Award, User } from "lucide-react";
+import { BookOpen, Calendar, Award, User, MessageSquare } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 export default function StudentDashboard() {
   const [profile, setProfile] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProfile();
@@ -23,6 +26,8 @@ export default function StudentDashboard() {
       setProfile(data);
     }
   };
+
+
 
   return (
     <ProtectedRoute allowedRoles={["student"]}>
@@ -47,6 +52,23 @@ export default function StudentDashboard() {
                 <p><strong>Roll Number:</strong> {profile?.roll_number}</p>
                 <p><strong>Department:</strong> {profile?.department}</p>
                 <p><strong>Email:</strong> {profile?.email}</p>
+              </CardContent>
+            </Card>
+
+            {/* Feedback entry point - redirects to separate feedback page */}
+            <Card className="shadow-lg hover:shadow-xl transition-shadow">
+              <CardHeader>
+                <MessageSquare className="w-8 h-8 text-primary mb-2" />
+                <CardTitle>Feedback</CardTitle>
+                <CardDescription>Go to the dedicated feedback page to submit and view your feedback</CardDescription>
+              </CardHeader>
+              <CardContent className="flex items-center justify-center">
+                <div className="space-y-2 text-center">
+                  <p className="text-muted-foreground">Open the full feedback page to write, submit and view your past feedback.</p>
+                  <div className="mt-2">
+                    <Button onClick={() => navigate('/feedback')} className="bg-gradient-to-r from-primary to-primary-glow">Go to Feedback</Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
 
