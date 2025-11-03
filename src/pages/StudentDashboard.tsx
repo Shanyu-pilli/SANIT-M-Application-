@@ -3,7 +3,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { BookOpen, Calendar, Award, User, MessageSquare } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -16,9 +16,9 @@ export default function StudentDashboard() {
   }, []);
 
   const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await api.auth.getUser();
     if (user) {
-      const { data } = await supabase
+      const { data } = await api
         .from("profiles")
         .select("*")
         .eq("id", user.id)

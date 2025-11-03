@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Navigation } from "@/components/Navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,14 +36,14 @@ export default function Auth() {
     setLoading(true);
     try {
       // First try to sign in with existing credentials
-      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error: signInError } = await api.auth.signInWithPassword({
         email: "test.student@nitm.ac.in",
         password: "testpass123"
       });
 
       if (signInError) {
         // If sign in fails, create a new account
-        const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: authData, error: authError } = await api.auth.signUp({
           email: "test.student@nitm.ac.in",
           password: "testpass123"
         });
@@ -59,7 +59,7 @@ export default function Auth() {
         }
 
         // Create or update test student profile
-        const { error: profileError } = await supabase.from("profiles").upsert({
+  const { error: profileError } = await api.from("profiles").upsert({
           id: authData.user.id,
           name: "Test Student",
           email: "test.student@nitm.ac.in",
@@ -80,7 +80,7 @@ export default function Auth() {
         navigate("/student");
       } else if (signInData.user) {
         // If sign in succeeds, verify the profile exists
-        const { data: profile, error: profileError } = await supabase
+        const { data: profile, error: profileError } = await api
           .from("profiles")
           .select("*")
           .eq("id", signInData.user.id)
@@ -88,7 +88,7 @@ export default function Auth() {
 
         if (profileError || !profile) {
           // Create profile if it doesn't exist
-          const { error: createProfileError } = await supabase.from("profiles").upsert({
+          const { error: createProfileError } = await api.from("profiles").upsert({
             id: signInData.user.id,
             name: "Test Student",
             email: "test.student@nitm.ac.in",
@@ -122,7 +122,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+  const { data: authData, error: authError } = await api.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
@@ -130,7 +130,7 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        const { data: profile } = await supabase
+        const { data: profile } = await api
           .from("profiles")
           .select("*")
           .eq("id", authData.user.id)
@@ -154,7 +154,7 @@ export default function Auth() {
 
     try {
       // Send OTP
-      const { data, error: otpError } = await supabase.functions.invoke("send-otp", {
+  const { data, error: otpError } = await api.functions.invoke("send-otp", {
         body: { email, name },
       });
 
@@ -182,14 +182,14 @@ export default function Auth() {
 
     try {
       // Verify OTP
-      const { error: verifyError } = await supabase.functions.invoke("verify-otp", {
+  const { error: verifyError } = await api.functions.invoke("verify-otp", {
         body: { email: signupData.email, otpCode },
       });
 
       if (verifyError) throw verifyError;
 
       // Create account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: authData, error: authError } = await api.auth.signUp({
         email: signupData.email,
         password: signupData.password,
       });
@@ -215,7 +215,7 @@ export default function Auth() {
           profileData.admin_id = signupData.adminId;
         }
 
-        const { error: profileError } = await supabase.from("profiles").insert(profileData);
+  const { error: profileError } = await api.from("profiles").insert(profileData);
 
         if (profileError) throw profileError;
 

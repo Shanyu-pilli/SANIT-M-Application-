@@ -4,7 +4,7 @@ import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { BookOpen, MessageSquare, Star } from "lucide-react";
 import { toast } from "sonner";
 
@@ -77,9 +77,9 @@ export default function Feedback() {
   }, []);
 
   const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await api.auth.getUser();
     if (user) {
-      const { data } = await supabase
+      const { data } = await api
         .from("profiles")
         .select("*")
         .eq("id", user.id)
@@ -93,7 +93,7 @@ export default function Feedback() {
     if (!userId && !profile) return;
     const id = userId || profile?.id;
     try {
-      const { data, error } = await supabase
+      const { data, error } = await api
         .from("feedbacks")
         .select("*")
         .eq("user_id", id)
@@ -190,7 +190,7 @@ export default function Feedback() {
       };
 
       if (editingFeedbackId) {
-        const { error } = await supabase.from("feedbacks").update({ content: JSON.stringify(payload) }).eq("id", editingFeedbackId);
+  const { error } = await api.from("feedbacks").update({ content: JSON.stringify(payload) }).eq("id", editingFeedbackId);
         if (error) {
           console.error("Update error:", error);
           toast.error(error.message || "Failed to update feedback");
@@ -200,7 +200,7 @@ export default function Feedback() {
         setEditingFeedbackId(null);
         setEditingInstructorIndex(null);
       } else {
-        const { error } = await supabase.from("feedbacks").insert({ user_id: profile.id, content: JSON.stringify(payload), created_at: new Date().toISOString() });
+  const { error } = await api.from("feedbacks").insert({ user_id: profile.id, content: JSON.stringify(payload), created_at: new Date().toISOString() });
         if (error) {
           console.error("Insert error:", error);
           toast.error(error.message || "Failed to submit feedback");

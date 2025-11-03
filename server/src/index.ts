@@ -6,6 +6,7 @@ import authRoutes from './routes/auth';
 import profileRoutes from './routes/profile';
 import feedbackRoutes from './routes/feedbacks';
 import functionsRoutes from './routes/functions';
+import dbRoutes from './routes/db';
 import storageRoutes from './routes/storage';
 import multer from 'multer';
 import path from 'path';
@@ -30,6 +31,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/feedbacks', feedbackRoutes);
 app.use('/api/functions', functionsRoutes);
 app.use('/api/storage', storageRoutes);
+app.use('/api/db', dbRoutes);
 
 app.get('/', (_req, res) => res.json({ ok: true, message: 'SANIT API' }));
 
