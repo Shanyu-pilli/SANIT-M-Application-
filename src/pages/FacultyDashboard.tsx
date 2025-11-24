@@ -38,14 +38,40 @@ export default function FacultyDashboard() {
 
   const fetchFeedbacks = async () => {
     try {
-      const res = await fetch('/api/feedbacks');
+      // Assuming profile has faculty_id
+      const facultyId = profile?.faculty_id || profile?.id;
+      
+      if (!facultyId) {
+        console.warn('No faculty ID available');
+        return;
+      }
+
+      const res = await fetch('http://127.0.0.1:9001/feedback/get-feedback', {
+        method: 'GET',
+        headers: {
+          'X-Faculty-ID': facultyId.toString(),
+          'Content-Type': 'application/json',
+        },
+      });
+      
       if (!res.ok) {
         console.warn('fetch feedbacks error', res.statusText);
         return;
       }
-      const data = await res.json();
-      // Expecting an array of feedback rows with { content, created_at, ... }
-      setFeedbacks(Array.isArray(data) ? data : []);
+      
+      const response = await res.json();
+      
+      if (response.status === 'success') {
+        // Transform the decrypted feedback data for display
+        const feedbackData = response.data.map((item: any) => ({
+          id: item.feedback_id,
+          content: item.feedback_data,
+          created_at: new Date().toISOString(), // You might want to add proper timestamp
+          student_id: item.student_id
+        }));
+        
+        setFeedbacks(feedbackData);
+      }
     } catch (err) {
       console.error('error fetching feedbacks', err);
     }

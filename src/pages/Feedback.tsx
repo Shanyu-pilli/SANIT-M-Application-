@@ -150,69 +150,45 @@ export default function Feedback() {
 
   const submitFeedback = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!profile) {
-      toast.error("No profile available");
-      return;
-    }
-
-    // basic validation: ensure at least one instructor with name and course code
-    const validInstructors = instructors.filter((ins) => ins.name?.trim() && ins.courseCode?.trim());
-    if (validInstructors.length === 0) {
-      toast.error("Please add at least one instructor with Course Code and name.");
-      return;
-    }
-
-    // validate that all questions have been answered for each instructor
-    const missing: Record<number, number[]> = {};
-    instructors.forEach((ins, idx) => {
-      const miss: number[] = [];
-      for (let qi = 0; qi < QUESTIONS.length; qi++) {
-        if (!ins.ratings || !ins.ratings[qi] || ins.ratings[qi] < 1) miss.push(qi);
-      }
-      if (miss.length) missing[idx] = miss;
-    });
-
-    if (Object.keys(missing).length > 0) {
-      setMissingQuestions(missing);
-      // focus first missing instructor
-      const firstIdx = Number(Object.keys(missing)[0]);
-      setCurrentPage(Math.max(0, Math.min(firstIdx, instructors.length - 1)));
-      toast.error("Please answer all questions for each instructor before submitting.");
-      return;
-    }
-
+    
     try {
       const payload = {
         programme,
         department,
         semester,
         instructors,
+        student_id: profile?.id, // Add student ID
+        timestamp: new Date().toISOString()
       };
 
-      if (editingFeedbackId) {
-  const { error } = await api.from("feedbacks").update({ content: JSON.stringify(payload) }).eq("id", editingFeedbackId);
-        if (error) {
-          console.error("Update error:", error);
-          toast.error(error.message || "Failed to update feedback");
-          return;
-        }
-        toast.success("Feedback updated");
-        setEditingFeedbackId(null);
-        setEditingInstructorIndex(null);
-      } else {
-  const { error } = await api.from("feedbacks").insert({ user_id: profile.id, content: JSON.stringify(payload), created_at: new Date().toISOString() });
-        if (error) {
-          console.error("Insert error:", error);
-          toast.error(error.message || "Failed to submit feedback");
-          return;
-        }
-        toast.success("Feedback submitted");
+      // Submit to encrypted feedback endpoint
+      const response = await fetch("http://127.0.0.1:9001/feedback/submit-feedback", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // reset to single blank instructor
-      setInstructors([{ courseCode: "", name: "", ratings: Array(QUESTIONS.length).fill(0), commentsInstructor: "", commentsCourse: "" }]);
+      const result = await response.json();
+      console.log("Encrypted feedback stored:", result);
+
+      toast.success(`Feedback submitted and encrypted successfully! ${result.feedback_records.length} instructors processed.`);
+
+      // Reset form
+      setInstructors([{ 
+        courseCode: "", 
+        name: "", 
+        ratings: Array(QUESTIONS.length).fill(0), 
+        commentsInstructor: "", 
+        commentsCourse: "" 
+      }]);
       setMissingQuestions({});
-      fetchFeedbacks(profile.id);
+      
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Failed to submit feedback");

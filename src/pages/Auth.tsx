@@ -154,21 +154,21 @@ export default function Auth() {
 
     try {
       // Send OTP
-  const { data, error: otpError } = await api.functions.invoke("send-otp", {
-        body: { email, name },
-      });
+  // const { data, error: otpError } = await api.functions.invoke("send-otp", {
+  //       body: { email, name },
+  //     });
 
-      if (otpError) throw otpError;
+  //     if (otpError) throw otpError;
 
       setSignupData({ role, name, email, password, department, rollNumber, facultyId, adminId });
       setShowOTP(true);
       
       // Check if in dev mode (email service not configured)
-      if (data?.devMode && data?.otp) {
-        toast.success(`Development Mode: Your OTP is ${data.otp}`, { duration: 10000 });
-      } else {
-        toast.success("OTP sent to your email!");
-      }
+      // if (data?.devMode && data?.otp) {
+      //   toast.success(`Development Mode: Your OTP is ${data.otp}`, { duration: 10000 });
+      // } else {
+      //   toast.success("OTP sent to your email!");
+      // }
     } catch (error: any) {
       toast.error(error.message || "Failed to send OTP");
     } finally {
@@ -182,17 +182,17 @@ export default function Auth() {
 
     try {
       // Verify OTP
-  const { error: verifyError } = await api.functions.invoke("verify-otp", {
-        body: { email: signupData.email, otpCode },
-      });
+  // const { error: verifyError } = await api.functions.invoke("verify-otp", {
+  //       body: { email: signupData.email, otpCode },
+  //     });
 
-      // if (verifyError) throw verifyError;
+  //     // if (verifyError) throw verifyError;
 
-      // Create account
-  const { data: authData, error: authError } = await api.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-      });
+  //     // Create account
+  // const { data: authData, error: authError } = await api.auth.signUp({
+  //       email: signupData.email,
+  //       password: signupData.password,
+  //     });
 
       // if (authError) throw authError;
 
