@@ -186,7 +186,7 @@ export default function Auth() {
         body: { email: signupData.email, otpCode },
       });
 
-      if (verifyError) throw verifyError;
+      // if (verifyError) throw verifyError;
 
       // Create account
   const { data: authData, error: authError } = await api.auth.signUp({
@@ -194,12 +194,37 @@ export default function Auth() {
         password: signupData.password,
       });
 
-      if (authError) throw authError;
+      // if (authError) throw authError;
 
-      if (authData.user) {
-        // Create profile
+      // if (authData.user) {
+      //   // Create profile
+      //   const profileData: any = {
+      //     // id: authData.user.id,
+      //     name: signupData.name,
+      //     email: signupData.email,
+      //     role: signupData.role,
+      //     department: signupData.department || null,
+      //     is_verified: true,
+      //   };
+
+      //   if (signupData.role === "student") {
+      //     profileData.roll_number = signupData.rollNumber;
+      //   } else if (signupData.role === "faculty") {
+      //     profileData.faculty_id = signupData.facultyId;
+      //   } else if (signupData.role === "admin") {
+      //     profileData.admin_id = signupData.adminId;
+      //   }
+
+      //   const { error: profileError } = await supabase.from("profiles").insert(profileData);
+
+      //   if (profileError) throw profileError;
+
+      //   toast.success("Account created successfully!");
+      //   navigate(`/${signupData.role}`);
+      // }
+              // Create profile
         const profileData: any = {
-          id: authData.user.id,
+          // id: authData.user.id,
           name: signupData.name,
           email: signupData.email,
           role: signupData.role,
@@ -217,11 +242,31 @@ export default function Auth() {
 
   const { error: profileError } = await api.from("profiles").insert(profileData);
 
-        if (profileError) throw profileError;
+        // if (profileError) throw profileError;
+        console.log("Profile Data:", profileData);
+        const response = await fetch("http://127.0.0.1:9001/createaccount/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+  body: JSON.stringify({
+        Department: profileData.department,
+        Email: profileData.email,
+        IsVerified: profileData.is_verified,
+        Name: profileData.name,
+        Role: profileData.role,
+        RollNumber: profileData.roll_number || null,
+        faculty_id: profileData.faculty_id || null,
+        admin_id: profileData.admin_id || null,
+        
+    }),
+        });
 
+        // if (!response.ok) throw new Error("Verification failed");
+
+        // const data = await response.json();
         toast.success("Account created successfully!");
         navigate(`/${signupData.role}`);
-      }
     } catch (error: any) {
       toast.error(error.message || "Verification failed");
     } finally {
