@@ -46,8 +46,8 @@ export default function AdminDashboard() {
     try {
       const { error } = await api
         .from("profiles")
-        .delete()
-        .eq("id", userId);
+        .eq("id", userId)
+        .delete();
 
       if (error) throw error;
 

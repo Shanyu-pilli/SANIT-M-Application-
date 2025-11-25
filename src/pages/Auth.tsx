@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import { Navigation } from "@/components/Navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -230,9 +231,9 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5">
+    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/5 flex flex-col">
       <Navigation />
-      <div className="container mx-auto px-4 pt-24 pb-12">
+      <div className="container mx-auto px-4 pt-24 pb-12 flex-grow">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <GraduationCap className="w-16 h-16 mx-auto mb-4 text-primary" />
@@ -435,6 +436,7 @@ export default function Auth() {
           )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 }

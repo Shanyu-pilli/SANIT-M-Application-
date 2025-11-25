@@ -14,7 +14,7 @@ import path from 'path';
 dotenv.config();
 
 const app = express();
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 4001;
 
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));

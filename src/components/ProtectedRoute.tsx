@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 
@@ -12,6 +12,23 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
+
+  const fetchProfile = useCallback(async (userId: string) => {
+    const { data, error } = await api
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+
+    if (!error && data) {
+      setProfile(data);
+
+      // Check role permissions
+      if (allowedRoles && !allowedRoles.includes(data.role)) {
+        navigate("/");
+      }
+    }
+  }, [allowedRoles, navigate]);
 
   useEffect(() => {
     // Get initial session
@@ -39,24 +56,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const fetchProfile = async (userId: string) => {
-    const { data, error } = await api
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .single();
-
-    if (!error && data) {
-      setProfile(data);
-      
-      // Check role permissions
-      if (allowedRoles && !allowedRoles.includes(data.role)) {
-        navigate("/");
-      }
-    }
-  };
+  }, [fetchProfile, navigate]);
 
   // Development bypass: render children without requiring Supabase session.
   // This is safe because all hooks are called above unconditionally.

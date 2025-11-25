@@ -3,6 +3,7 @@ import { Slideshow } from "@/components/Slideshow";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { GraduationCap, Users, BookOpen, Award } from "lucide-react";
+import { Footer } from "@/components/Footer";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -69,18 +70,7 @@ const Index = () => {
           </div>
         </div>
 
-        <footer className="text-center py-8 border-t border-border">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <GraduationCap className="w-6 h-6 text-primary" />
-            <p className="text-lg font-semibold">College Portal</p>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            © 2025 College Portal. All rights reserved.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Email: contact@collegeportal.edu | Phone: +1 (555) 123-4567
-          </p>
-        </footer>
+        <Footer />
       </main>
     </div>
   );
