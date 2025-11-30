@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Navigation } from "@/components/Navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { Users, Settings, BarChart, User, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,9 +18,9 @@ export default function AdminDashboard() {
   }, []);
 
   const fetchProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await api.auth.getUser();
     if (user) {
-      const { data } = await supabase
+      const { data } = await api
         .from("profiles")
         .select("*")
         .eq("id", user.id)
@@ -30,7 +30,7 @@ export default function AdminDashboard() {
   };
 
   const fetchAllUsers = async () => {
-    const { data } = await supabase
+    const { data } = await api
       .from("profiles")
       .select("*")
       .order("created_at", { ascending: false });
@@ -44,7 +44,7 @@ export default function AdminDashboard() {
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await api
         .from("profiles")
         .delete()
         .eq("id", userId);

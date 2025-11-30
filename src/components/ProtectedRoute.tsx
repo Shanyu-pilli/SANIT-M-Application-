@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { api } from "@/lib/api";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -10,13 +9,13 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    api.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (!session) {
         navigate("/auth");
@@ -30,7 +29,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = api.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (!session) {
         navigate("/auth");
@@ -43,7 +42,7 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
   }, [navigate]);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data, error } = await api
       .from("profiles")
       .select("*")
       .eq("id", userId)
@@ -58,6 +57,12 @@ export const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) 
       }
     }
   };
+
+  // Development bypass: render children without requiring Supabase session.
+  // This is safe because all hooks are called above unconditionally.
+  if (import.meta.env.DEV) {
+    return <>{children}</>;
+  }
 
   if (loading) {
     return (

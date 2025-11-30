@@ -1,18 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { useEffect, useState } from "react";
-import { Session } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { GraduationCap, LogOut, Home } from "lucide-react";
 
 export const Navigation = () => {
   const navigate = useNavigate();
-  const [session, setSession] = useState<Session | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    api.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
         fetchProfile(session.user.id);
@@ -21,7 +20,7 @@ export const Navigation = () => {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = api.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
         fetchProfile(session.user.id);
@@ -34,7 +33,7 @@ export const Navigation = () => {
   }, []);
 
   const fetchProfile = async (userId: string) => {
-    const { data } = await supabase
+    const { data } = await api
       .from("profiles")
       .select("*")
       .eq("id", userId)
@@ -46,7 +45,7 @@ export const Navigation = () => {
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+  await api.auth.signOut();
     toast.success("Logged out successfully");
     navigate("/");
   };

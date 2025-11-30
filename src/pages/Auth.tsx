@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
+import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { Navigation } from "@/components/Navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -32,12 +32,97 @@ export default function Auth() {
   const [adminId, setAdminId] = useState("");
   const [otpCode, setOtpCode] = useState("");
 
+  const handleDevLogin = async () => {
+    setLoading(true);
+    try {
+      // First try to sign in with existing credentials
+  const { data: signInData, error: signInError } = await api.auth.signInWithPassword({
+        email: "test.student@nitm.ac.in",
+        password: "testpass123"
+      });
+
+      if (signInError) {
+        // If sign in fails, create a new account
+  const { data: authData, error: authError } = await api.auth.signUp({
+          email: "test.student@nitm.ac.in",
+          password: "testpass123"
+        });
+
+        if (authError) {
+          toast.error(`Auth Error: ${authError.message}`);
+          return;
+        }
+
+        if (!authData.user) {
+          toast.error("Failed to create test user");
+          return;
+        }
+
+        // Create or update test student profile
+  const { error: profileError } = await api.from("profiles").upsert({
+          id: authData.user.id,
+          name: "Test Student",
+          email: "test.student@nitm.ac.in",
+          role: "student",
+          department: "Computer Science",
+          roll_number: "b22cs999",
+          is_verified: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+
+        if (profileError) {
+          toast.error(`Profile Error: ${profileError.message}`);
+          return;
+        }
+
+        toast.success("Development: Created and logged in as test student");
+        navigate("/student");
+      } else if (signInData.user) {
+        // If sign in succeeds, verify the profile exists
+        const { data: profile, error: profileError } = await api
+          .from("profiles")
+          .select("*")
+          .eq("id", signInData.user.id)
+          .single();
+
+        if (profileError || !profile) {
+          // Create profile if it doesn't exist
+          const { error: createProfileError } = await api.from("profiles").upsert({
+            id: signInData.user.id,
+            name: "Test Student",
+            email: "test.student@nitm.ac.in",
+            role: "student",
+            department: "Computer Science",
+            roll_number: "b22cs999",
+            is_verified: true,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+
+          if (createProfileError) {
+            toast.error(`Profile Creation Error: ${createProfileError.message}`);
+            return;
+          }
+        }
+
+        toast.success("Development: Logged in as test student");
+        navigate("/student");
+      }
+    } catch (error: any) {
+      toast.error(`Unexpected Error: ${error.message || "Dev login failed"}`);
+      console.error("Dev Login Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+  const { data: authData, error: authError } = await api.auth.signInWithPassword({
         email: loginEmail,
         password: loginPassword,
       });
@@ -45,7 +130,7 @@ export default function Auth() {
       if (authError) throw authError;
 
       if (authData.user) {
-        const { data: profile } = await supabase
+        const { data: profile } = await api
           .from("profiles")
           .select("*")
           .eq("id", authData.user.id)
@@ -69,21 +154,21 @@ export default function Auth() {
 
     try {
       // Send OTP
-      const { data, error: otpError } = await supabase.functions.invoke("send-otp", {
-        body: { email, name },
-      });
+  // const { data, error: otpError } = await api.functions.invoke("send-otp", {
+  //       body: { email, name },
+  //     });
 
-      if (otpError) throw otpError;
+  //     if (otpError) throw otpError;
 
       setSignupData({ role, name, email, password, department, rollNumber, facultyId, adminId });
       setShowOTP(true);
       
       // Check if in dev mode (email service not configured)
-      if (data?.devMode && data?.otp) {
-        toast.success(`Development Mode: Your OTP is ${data.otp}`, { duration: 10000 });
-      } else {
-        toast.success("OTP sent to your email!");
-      }
+      // if (data?.devMode && data?.otp) {
+      //   toast.success(`Development Mode: Your OTP is ${data.otp}`, { duration: 10000 });
+      // } else {
+      //   toast.success("OTP sent to your email!");
+      // }
     } catch (error: any) {
       toast.error(error.message || "Failed to send OTP");
     } finally {
@@ -97,24 +182,49 @@ export default function Auth() {
 
     try {
       // Verify OTP
-      const { error: verifyError } = await supabase.functions.invoke("verify-otp", {
-        body: { email: signupData.email, otpCode },
-      });
+  // const { error: verifyError } = await api.functions.invoke("verify-otp", {
+  //       body: { email: signupData.email, otpCode },
+  //     });
 
-      if (verifyError) throw verifyError;
+  //     // if (verifyError) throw verifyError;
 
-      // Create account
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: signupData.email,
-        password: signupData.password,
-      });
+  //     // Create account
+  // const { data: authData, error: authError } = await api.auth.signUp({
+  //       email: signupData.email,
+  //       password: signupData.password,
+  //     });
 
-      if (authError) throw authError;
+      // if (authError) throw authError;
 
-      if (authData.user) {
-        // Create profile
+      // if (authData.user) {
+      //   // Create profile
+      //   const profileData: any = {
+      //     // id: authData.user.id,
+      //     name: signupData.name,
+      //     email: signupData.email,
+      //     role: signupData.role,
+      //     department: signupData.department || null,
+      //     is_verified: true,
+      //   };
+
+      //   if (signupData.role === "student") {
+      //     profileData.roll_number = signupData.rollNumber;
+      //   } else if (signupData.role === "faculty") {
+      //     profileData.faculty_id = signupData.facultyId;
+      //   } else if (signupData.role === "admin") {
+      //     profileData.admin_id = signupData.adminId;
+      //   }
+
+      //   const { error: profileError } = await supabase.from("profiles").insert(profileData);
+
+      //   if (profileError) throw profileError;
+
+      //   toast.success("Account created successfully!");
+      //   navigate(`/${signupData.role}`);
+      // }
+              // Create profile
         const profileData: any = {
-          id: authData.user.id,
+          // id: authData.user.id,
           name: signupData.name,
           email: signupData.email,
           role: signupData.role,
@@ -130,13 +240,33 @@ export default function Auth() {
           profileData.admin_id = signupData.adminId;
         }
 
-        const { error: profileError } = await supabase.from("profiles").insert(profileData);
+  const { error: profileError } = await api.from("profiles").insert(profileData);
 
-        if (profileError) throw profileError;
+        // if (profileError) throw profileError;
+        console.log("Profile Data:", profileData);
+        const response = await fetch("http://127.0.0.1:9001/createaccount/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+  body: JSON.stringify({
+        Department: profileData.department,
+        Email: profileData.email,
+        IsVerified: profileData.is_verified,
+        Name: profileData.name,
+        Role: profileData.role,
+        RollNumber: profileData.roll_number || null,
+        faculty_id: profileData.faculty_id || null,
+        admin_id: profileData.admin_id || null,
+        
+    }),
+        });
 
+        // if (!response.ok) throw new Error("Verification failed");
+
+        // const data = await response.json();
         toast.success("Account created successfully!");
         navigate(`/${signupData.role}`);
-      }
     } catch (error: any) {
       toast.error(error.message || "Verification failed");
     } finally {
@@ -196,6 +326,17 @@ export default function Auth() {
                         {loading ? "Logging in..." : "Login"}
                       </Button>
                     </form>
+                    <div className="mt-4 text-center">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        className="text-sm text-muted-foreground hover:text-primary"
+                        onClick={handleDevLogin}
+                        disabled={loading}
+                      >
+                        [DEV] Quick Login as Student
+                      </Button>
+                    </div>
                   </TabsContent>
 
                   <TabsContent value="signup">
